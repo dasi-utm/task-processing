@@ -1,7 +1,7 @@
 services:
   task-processing:
     build:
-      context: .
+      context: ..
       target: deps
     command: npm run start:dev
     ports:
@@ -11,7 +11,7 @@ services:
       PORT: "3002"
       RABBITMQ_URL: amqp://rabbitmq:5672
     volumes:
-      - .:/app
+      - ..:/app
       - /app/node_modules
     depends_on:
       rabbitmq:
@@ -22,7 +22,7 @@ services:
     image: rabbitmq:3-management-alpine
     ports:
       - "5672:5672"
-      - "15672:15672"
+      - "15672:15672"   # management UI — dev only
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:

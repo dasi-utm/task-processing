@@ -1,15 +1,14 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
 import { RabbitMQConnection } from '../config/rabbitmq';
 import { TaskProcessor } from '../processors/task-processor.service';
 import { TaskMessage } from '../types/task-message.interface';
 
 @Injectable()
 export class TaskConsumerService implements OnModuleInit, OnModuleDestroy {
-  private rabbitMQ: RabbitMQConnection;
-
-  constructor(private taskProcessor: TaskProcessor) {
-    this.rabbitMQ = new RabbitMQConnection();
-  }
+  constructor(
+    private readonly taskProcessor: TaskProcessor,
+    @Inject('RABBITMQ_CONNECTION') private readonly rabbitMQ: RabbitMQConnection,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.rabbitMQ.connect();

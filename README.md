@@ -99,13 +99,26 @@ RABBITMQ_URL=amqp://localhost:5672
 
 ## Docker
 
-**Development** (source mounted, hot reload):
+Compose files live in `deployment/`. The `Dockerfile` uses multi-stage builds — `target` selects the environment.
+
+**Development** (source mounted, hot reload, RabbitMQ management UI on `:15672`):
 
 ```bash
-docker compose up
+docker compose -f deployment/docker-compose.dev.yml up
 ```
 
-**Production image only:**
+**Production** (compiled image, no bind mounts, no management UI):
+
+```bash
+# Copy and fill in required secrets first
+cp deployment/.env.prod.example deployment/.env.prod
+
+docker compose -f deployment/docker-compose.prod.yml --env-file deployment/.env.prod up
+```
+
+Required env vars for prod: `RABBITMQ_URL`, `RABBITMQ_PASSWORD`.
+
+**Build the production image standalone:**
 
 ```bash
 docker build --target production -t task-processing .
@@ -114,7 +127,7 @@ docker run -p 3002:3002 \
   task-processing
 ```
 
-The `docker-compose.yml` in this directory spins up the service alongside RabbitMQ. To run the full stack with all services see the root `docker-compose.yml`.
+To run the full stack with all three services, use the compose files in the root `deployment/` folder.
 
 ---
 

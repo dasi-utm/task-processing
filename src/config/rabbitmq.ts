@@ -9,16 +9,22 @@ export class RabbitMQConnection {
       const url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
       this.connection = await amqp.connect(url);
       this.channel = await this.connection.createChannel();
-      
-      // Setup exchanges and queues
+
       await this.channel.assertExchange('task-events', 'topic', { durable: true });
-      await this.channel.assertQueue('task-processing-queue', { durable: true });
+
+      // Dead-letter config on the main queue so rejected messages route to the DLQ
+      await this.channel.assertQueue('task-processing-queue', {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': '',
+          'x-dead-letter-routing-key': 'task-dlq-queue',
+        },
+      });
       await this.channel.assertQueue('task-dlq-queue', { durable: true });
-      
-      // Bind queue to exchange
+
       await this.channel.bindQueue('task-processing-queue', 'task-events', 'task.created');
-      
-      console.log('Connected to RabbitMQ');
+
+      console.log('Processing Service connected to RabbitMQ');
     } catch (error) {
       console.error('Failed to connect to RabbitMQ:', error);
       throw error;
@@ -33,11 +39,7 @@ export class RabbitMQConnection {
   }
 
   async close(): Promise<void> {
-    if (this.channel) {
-      await this.channel.close();
-    }
-    if (this.connection) {
-      await this.connection.close();
-    }
+    if (this.channel) await this.channel.close();
+    if (this.connection) await this.connection.close();
   }
 }

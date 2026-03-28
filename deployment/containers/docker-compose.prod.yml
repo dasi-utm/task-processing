@@ -1,0 +1,12 @@
+services:
+  task-processing:
+    build:
+      context: ../../
+      target: production
+    ports:
+      - "3002:3002"
+    environment: # move to deployment/config
+      NODE_ENV: production
+      PORT: "3002"
+      RABBITMQ_URL: ${RABBITMQ_URL} # to set env variable
+    restart: unless-stopped

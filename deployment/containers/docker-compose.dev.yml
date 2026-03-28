@@ -1,17 +1,17 @@
 services:
   task-processing:
     build:
-      context: ..
+      context: ../../
       target: deps
     command: npm run start:dev
     ports:
       - "3002:3002"
-    environment:
+    environment: # move to deployment/config
       NODE_ENV: development
       PORT: "3002"
       RABBITMQ_URL: amqp://rabbitmq:5672 # need to see where to move rabbitmq & psql as separate containers so they can be used by everyone
     volumes:
-      - ..:/app
+      - ../../:/app
       - /app/node_modules
     restart: unless-stopped
     networks:

@@ -1,18 +1,26 @@
-FROM node:20-alpine
-
+# Stage 1: Install all dependencies
+FROM node:20-alpine AS deps
 WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 
-# Copy all files
+# Stage 2: Build production artifact
+FROM deps AS builder
 COPY . .
-
-# Install all dependencies (including dev)
-RUN npm install
-
-# Build the app
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# Stage 3: Install only production dependencies
+FROM node:20-alpine AS prod-deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Start the app
-CMD ["npm", "start"]
+# Stage 4: Production image
+FROM node:20-alpine AS production
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+EXPOSE 3002
+CMD ["node", "dist/main"]

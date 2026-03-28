@@ -1,0 +1,35 @@
+services:
+  task-processing:
+    build:
+      context: .
+      target: deps
+    command: npm run start:dev
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: development
+      PORT: "3002"
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rabbitmq_data:

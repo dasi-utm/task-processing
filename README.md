@@ -71,7 +71,7 @@ npm run start:dev
 
 ## Environment variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in the deployment/config: (Still todo, right now it auto reads from compose file)
 
 ```env
 PORT=3002

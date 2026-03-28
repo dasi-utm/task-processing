@@ -8,25 +8,25 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3002"
-      RABBITMQ_URL: ${RABBITMQ_URL}
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+      RABBITMQ_URL: ${RABBITMQ_URL} # to set env variable
+    # depends_on:
+      # rabbitmq:
+        # condition: service_healthy
     restart: unless-stopped
 
-  rabbitmq:
-    image: rabbitmq:3-alpine   # no management UI in prod
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+  # rabbitmq:
+  #   image: rabbitmq:3-alpine   # no management UI in prod
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
 
-volumes:
-  rabbitmq_data:
+# volumes:
+  # rabbitmq_data:

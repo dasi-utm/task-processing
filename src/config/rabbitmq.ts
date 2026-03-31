@@ -3,10 +3,12 @@ import { connect, ChannelModel, Channel } from 'amqplib';
 export class RabbitMQConnection {
   private connection: ChannelModel | null = null;
   private channel: Channel | null = null;
-  private connectionUrl = process.env.RABBITMQ_URL!;
+  private connectionUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
 
   async connect(): Promise<void> {
     try {
+      console.log('Connecting to RabbitMQ at:', this.connectionUrl);
+
       this.connection = await connect(this.connectionUrl);
       this.channel = await this.connection.createChannel();
 

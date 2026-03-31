@@ -40,18 +40,18 @@ jobs:
           cache-dependency-path: './package-lock.json'
 
       - name: Install dependencies
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm ci
 
       - name: Build application
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm run build || echo "No build script found"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-output
-          path: ./task-consumer/dist/
+          path: ./dist/
           retention-days: 1
 
   # 2. UNIT TESTS
@@ -70,11 +70,11 @@ jobs:
           cache-dependency-path: './package-lock.json'
 
       - name: Install dependencies
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm ci
 
       - name: Run unit tests
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm test || echo "No tests found"
         continue-on-error: false
 
@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: ./task-consumer/test-results/
+          path: ./test-results/
           retention-days: 7
 
   # 3. CODE VALIDATION (Lint & Format)
@@ -102,16 +102,16 @@ jobs:
           cache-dependency-path: './package-lock.json'
 
       - name: Install dependencies
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm ci
 
       - name: Run ESLint
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm run lint || echo "No lint script found"
         continue-on-error: false
 
       - name: Check formatting
-        working-directory: ./task-consumer
+        working-directory: .
         run: npx prettier --check "src/**/*.js" || echo "No prettier config found"
 
   # 4. INTEGRATION TESTS (with RabbitMQ & PostgreSQL)
@@ -139,11 +139,11 @@ jobs:
           sleep 15
 
       - name: Install dependencies
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm ci
 
       - name: Run integration tests
-        working-directory: ./task-consumer
+        working-directory: .
         run: npm run test:integration || echo "No integration tests found"
         env:
           RABBITMQ_URL: amqp://guest:guest@localhost:5672
@@ -203,8 +203,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: ./task-consumer
-          file: ./task-consumer/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE_URI_SHA }}

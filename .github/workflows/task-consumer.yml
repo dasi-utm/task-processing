@@ -83,46 +83,18 @@ jobs:
                 containers:
                 - name: $DEPLOYMENT_NAME
                   image: $IMAGE_URI
-                  env:
-                  # RabbitMQ - using secret
-                  - name: RABBITMQ_URL
-                    valueFrom:
-                      secretKeyRef:
-                        name: rabbitmq-secret
-                        key: RABBITMQ_URL
-                  # PostgreSQL - using secret
-                  - name: POSTGRES_HOST
-                    valueFrom:
-                      secretKeyRef:
-                        name: postgres-secret
-                        key: POSTGRES_HOST
-                  - name: POSTGRES_PORT
-                    valueFrom:
-                      secretKeyRef:
-                        name: postgres-secret
-                        key: POSTGRES_PORT
-                  - name: POSTGRES_USER
-                    valueFrom:
-                      secretKeyRef:
-                        name: postgres-secret
-                        key: POSTGRES_USER
-                  - name: POSTGRES_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: postgres-secret
-                        key: POSTGRES_PASSWORD
-                  - name: POSTGRES_DB
-                    valueFrom:
-                      secretKeyRef:
-                        name: postgres-secret
-                        key: POSTGRES_DB
-                resources:
-                  requests:
-                    memory: "128Mi"
-                    cpu: "100m"
-                  limits:
-                    memory: "256Mi"
-                    cpu: "200m"
+                  envFrom:
+                  - secretRef:
+                      name: rabbitmq-secret
+                  - secretRef:
+                      name: postgres-secret
+                  resources:
+                    requests:
+                      memory: "2Gi"
+                      cpu: "500m"
+                    limits:
+                      memory: "4Gi"
+                      cpu: "1000m"
           EOF
           
           # Wait for rollout

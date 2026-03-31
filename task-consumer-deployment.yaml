@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-consumer
+  namespace: services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-consumer
+  template:
+    metadata:
+      labels:
+        app: task-consumer
+    spec:
+      containers:
+      - name: task-consumer
+        image: IMAGE_PLACEHOLDER
+        env:
+        - name: RABBITMQ_URL
+          value: "amqp://guest:guest@rabbitmq.infra.svc.cluster.local:5672"
+        - name: POSTGRES_HOST
+          value: "postgresql.infra.svc.cluster.local"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: "appuser"
+        - name: POSTGRES_PASSWORD
+          value: "dbpassword"
+        - name: POSTGRES_DB
+          value: "appdb"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

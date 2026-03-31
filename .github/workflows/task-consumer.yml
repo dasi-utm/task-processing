@@ -3,8 +3,6 @@ name: Build and Deploy Task Consumer
 on:
   push:
     branches: [main]
-    paths:
-      - 'task-consumer/**'
   workflow_dispatch:
 
 permissions:

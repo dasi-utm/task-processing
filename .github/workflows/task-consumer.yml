@@ -12,10 +12,10 @@ permissions:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GAR_LOCATION: europe-west1
-  GAR_REPOSITORY: services-repo  # or task-consumer-repo if you created dedicated
-  IMAGE_NAME: task-consumer
+  GAR_REPOSITORY: services-repo
+  IMAGE_NAME: task-processing
   NAMESPACE: services
-  DEPLOYMENT_NAME: task-consumer
+  DEPLOYMENT_NAME: task-processing
 
 jobs:
   deploy:
@@ -46,8 +46,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: ./task-consumer
-          file: ./task-consumer/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ env.IMAGE_URI }}
 

@@ -15,7 +15,9 @@ spec:
     spec:
       containers:
       - name: task-processing
-        image: IMAGE_PLACEHOLDER
+        image:
+          kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$IMAGE_URI -n $NAMESPACE || \
+          kubectl apply -f task-consumer-deployment.yaml -n $NAMESPACE
         env:
         - name: RABBITMQ_URL
           value: "amqp://guest:guest@rabbitmq.infra.svc.cluster.local:5672"

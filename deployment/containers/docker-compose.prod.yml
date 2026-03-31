@@ -1,5 +1,5 @@
 services:
-  task-processing:
+  task-consumer:
     build:
       context: ../../
       target: production

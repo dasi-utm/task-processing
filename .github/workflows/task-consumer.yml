@@ -13,9 +13,9 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GAR_LOCATION: europe-west1
   GAR_REPOSITORY: services-repo
-  IMAGE_NAME: task-processing
+  IMAGE_NAME: task-consumer
   NAMESPACE: services
-  DEPLOYMENT_NAME: task-processing
+  DEPLOYMENT_NAME: task-consumer
 
 jobs:
   deploy:
@@ -47,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
+          file: .Dockerfile
           push: true
           tags: ${{ env.IMAGE_URI }}
 
@@ -63,9 +63,47 @@ jobs:
           # Create namespace if not exists
           kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
           
-          # Update the deployment with new image
-          kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$IMAGE_URI -n $NAMESPACE || \
-          kubectl apply -f task-consumer-deployment.yaml -n $NAMESPACE
+          # Create or update deployment
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: $DEPLOYMENT_NAME
+            namespace: $NAMESPACE
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: $DEPLOYMENT_NAME
+            template:
+              metadata:
+                labels:
+                  app: $DEPLOYMENT_NAME
+              spec:
+                containers:
+                - name: $DEPLOYMENT_NAME
+                  image: $IMAGE_URI
+                  env:
+                  - name: RABBITMQ_URL
+                    value: "amqp://guest:guest@rabbitmq.infra.svc.cluster.local:5672"
+                  - name: POSTGRES_HOST
+                    value: "postgresql.infra.svc.cluster.local"
+                  - name: POSTGRES_PORT
+                    value: "5432"
+                  - name: POSTGRES_USER
+                    value: "appuser"
+                  - name: POSTGRES_PASSWORD
+                    value: "dbpassword"
+                  - name: POSTGRES_DB
+                    value: "appdb"
+                  resources:
+                    requests:
+                      memory: "128Mi"
+                      cpu: "100m"
+                    limits:
+                      memory: "256Mi"
+                      cpu: "200m"
+          EOF
           
           # Wait for rollout
           kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE

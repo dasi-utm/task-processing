@@ -58,52 +58,72 @@ jobs:
           location: ${{ secrets.GKE_LOCATION }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Deploy to GKE
-        run: |
-          # Create namespace if not exists
-          kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-          
-          # Create or update deployment
-          cat <<EOF | kubectl apply -f -
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: $DEPLOYMENT_NAME
-            namespace: $NAMESPACE
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
-                app: $DEPLOYMENT_NAME
-            template:
-              metadata:
-                labels:
-                  app: $DEPLOYMENT_NAME
-              spec:
-                containers:
-                - name: $DEPLOYMENT_NAME
-                  image: $IMAGE_URI
-                  env:
-                  - name: RABBITMQ_URL
-                    value: "amqp://guest:guest@rabbitmq.infra.svc.cluster.local:5672"
-                  - name: POSTGRES_HOST
-                    value: "postgresql.infra.svc.cluster.local"
-                  - name: POSTGRES_PORT
-                    value: "5432"
-                  - name: POSTGRES_USER
-                    value: "appuser"
-                  - name: POSTGRES_PASSWORD
-                    value: "dbpassword"
-                  - name: POSTGRES_DB
-                    value: "appdb"
-                  resources:
-                    requests:
-                      memory: "128Mi"
-                      cpu: "100m"
-                    limits:
-                      memory: "256Mi"
-                      cpu: "200m"
-          EOF
-          
-          # Wait for rollout
-          kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE
+- name: Deploy to GKE
+  run: |
+    # Create namespace if not exists
+    kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+    
+    # Create or update deployment
+    cat <<EOF | kubectl apply -f -
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: $DEPLOYMENT_NAME
+      namespace: $NAMESPACE
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: $DEPLOYMENT_NAME
+      template:
+        metadata:
+          labels:
+            app: $DEPLOYMENT_NAME
+        spec:
+          containers:
+          - name: $DEPLOYMENT_NAME
+            image: $IMAGE_URI
+            env:
+            # RabbitMQ - using secret
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: RABBITMQ_URL
+            # PostgreSQL - using secret
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PORT
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+    EOF
+    
+    # Wait for rollout
+    kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE

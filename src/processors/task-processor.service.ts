@@ -19,8 +19,8 @@ export class TaskProcessor {
     console.log(`Starting processing of task ${task.id} (${task.type})`);
     
     try {
-      // Simulate task processing based on type
-      await TaskSimulator.simulateProcessing(task.type);
+      // Simulate task processing based on type and priority
+      await TaskSimulator.simulateProcessing(task.type, task.priority);
       
       const duration = Date.now() - startTime;
       console.log(`Task ${task.id} completed in ${duration}ms`);

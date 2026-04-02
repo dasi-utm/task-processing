@@ -2,6 +2,14 @@ import { Injectable, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/commo
 import { RabbitMQConnection } from '../config/rabbitmq';
 import { TaskProcessor } from '../processors/task-processor.service';
 import { TaskMessage } from '../types/task-message.interface';
+import { featureFlags } from '../config/feature-flags';
+
+const TASK_TYPES = ['data-processing', 'report', 'analysis', 'email', 'notification', 'export', 'import'];
+const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
+
+function randomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 @Injectable()
 export class TaskConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -69,15 +77,21 @@ export class TaskConsumerService implements OnModuleInit, OnModuleDestroy {
 
       // Build a minimal task object from the available event payload.
       // The .NET TaskCreated event only carries taskId, title, and createdBy.
-      // A full fetch from the Task API (GET /api/v1/tasks/:id) would be ideal here,
-      // but for now we simulate with a default type.
+      // Type and priority are randomized when FEATURE_RANDOMIZATION_ENABLED=true.
+      const type     = featureFlags.randomization ? randomItem(TASK_TYPES) : 'data-processing';
+      const priority = featureFlags.randomization ? randomItem(PRIORITIES) : 'Medium';
+      console.log(
+        `[${taskId}] Assigned type="${type}" priority="${priority}"` +
+        ` (randomization=${featureFlags.randomization})`,
+      );
+
       const task = {
         id: taskId,
         title: message.payload.title ?? '',
         description: '',
-        type: 'data-processing',  // default — .NET schema has no task-type field
+        type,
         status: 'InProgress',
-        priority: 'Medium',
+        priority,
       };
 
       await this.taskProcessor.processTask(task);

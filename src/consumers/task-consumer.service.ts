@@ -3,6 +3,13 @@ import { RabbitMQConnection } from '../config/rabbitmq';
 import { TaskProcessor } from '../processors/task-processor.service';
 import { TaskMessage } from '../types/task-message.interface';
 
+const TASK_TYPES = ['data-processing', 'report', 'analysis', 'email', 'notification', 'export', 'import'];
+const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
+
+function randomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 @Injectable()
 export class TaskConsumerService implements OnModuleInit, OnModuleDestroy {
   constructor(
@@ -69,15 +76,18 @@ export class TaskConsumerService implements OnModuleInit, OnModuleDestroy {
 
       // Build a minimal task object from the available event payload.
       // The .NET TaskCreated event only carries taskId, title, and createdBy.
-      // A full fetch from the Task API (GET /api/v1/tasks/:id) would be ideal here,
-      // but for now we simulate with a default type.
+      // Type and priority are randomized here to exercise all processing paths.
+      const type = randomItem(TASK_TYPES);
+      const priority = randomItem(PRIORITIES);
+      console.log(`[${taskId}] Assigned type="${type}" priority="${priority}" for simulation`);
+
       const task = {
         id: taskId,
         title: message.payload.title ?? '',
         description: '',
-        type: 'data-processing',  // default — .NET schema has no task-type field
+        type,
         status: 'InProgress',
-        priority: 'Medium',
+        priority,
       };
 
       await this.taskProcessor.processTask(task);

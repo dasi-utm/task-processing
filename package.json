@@ -5,7 +5,10 @@
   "scripts": {
     "build": "nest build",
     "start": "node dist/main",
-    "start:dev": "nest start --watch"
+    "start:dev": "nest start --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "engines": {
     "node": ">=20.0.0",
@@ -31,8 +34,11 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@types/amqplib": "^0.10.8",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.14",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.0"
   }

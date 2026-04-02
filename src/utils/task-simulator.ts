@@ -1,3 +1,5 @@
+import { featureFlags } from '../config/feature-flags';
+
 // Configurable via environment variables
 const FAILURE_RATE = parseFloat(process.env.FAILURE_RATE ?? '0.05');
 const SLOW_RATE = parseFloat(process.env.SLOW_RATE ?? '0.10');
@@ -34,7 +36,8 @@ export class TaskSimulator {
   static async simulateProcessing(taskType: string, priority?: string): Promise<void> {
     const base = BASE_TIMES[taskType] ?? 3000;
     const variation = base * 0.4 * (Math.random() - 0.5);
-    const slowMultiplier = Math.random() < SLOW_RATE ? 3 : 1;
+    // Slow-path only fires when randomization is enabled
+    const slowMultiplier = featureFlags.randomization && Math.random() < SLOW_RATE ? 3 : 1;
     const priorityMultiplier = PRIORITY_MULTIPLIERS[priority ?? 'Medium'] ?? 1.0;
 
     const totalTime = Math.max(500, Math.round((base + variation) * slowMultiplier * priorityMultiplier));
